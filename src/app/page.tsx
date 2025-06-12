@@ -30,20 +30,45 @@ export default function Home() {
     return moment.unix(timestamp).tz("Europe/Belgrade").format("HH:mm");
   };
 
-  const isAdviceCorrect = (advice: string, homeGoals: number, awayGoals: number) => {
-    // Prosta logika - možeš proširiti kasnije
-    if (!advice) return false;
+  const isAdviceCorrect = (fixture: any) => {
+  const matchStatus = fixture.fixture.status.short;
+  if (matchStatus !== 'FT') return false; // Samo za Finished mečeve
 
-    if (advice.toLowerCase().includes("home win") && homeGoals > awayGoals) return true;
-    if (advice.toLowerCase().includes("away win") && awayGoals > homeGoals) return true;
-    if (advice.toLowerCase().includes("draw") && homeGoals === awayGoals) return true;
-    if (advice.toLowerCase().includes("double chance") && (
-      (advice.toLowerCase().includes("home") && homeGoals >= awayGoals) ||
-      (advice.toLowerCase().includes("away") && awayGoals >= homeGoals)
-    )) return true;
+  const homeGoals = fixture.goals?.home ?? 0;
+  const awayGoals = fixture.goals?.away ?? 0;
+  const totalGoals = homeGoals + awayGoals;
 
-    return false;
-  };
+  const winnerName = fixture.predictions?.[0]?.predictions?.winner?.name;
+  const advice = fixture.predictions?.[0]?.predictions?.advice?.toLowerCase() || '';
+
+  if (!winnerName || !advice) return false;
+
+  // Provera Winner dela
+  let winnerCorrect = false;
+  if (winnerName === 'Draw') {
+    winnerCorrect = homeGoals === awayGoals;
+  } else if (winnerName === fixture.teams.home.name) {
+    winnerCorrect = homeGoals > awayGoals;
+  } else if (winnerName === fixture.teams.away.name) {
+    winnerCorrect = awayGoals > homeGoals;
+  }
+
+  // Provera Goals dela (ako postoji)
+  let goalsCorrect = true; // podrazumevano true ako u advice-u nema goals
+
+  const goalsMatch = advice.match(/([+-]?\d+(\.\d+)?) goals/);
+  if (goalsMatch) {
+    const goalsValue = parseFloat(goalsMatch[1]);
+    if (advice.includes('under') || advice.includes('-')) {
+      goalsCorrect = totalGoals < goalsValue;
+    } else if (advice.includes('over') || advice.includes('+')) {
+      goalsCorrect = totalGoals > goalsValue;
+    }
+  }
+
+  // Konačno: oba moraju biti true
+  return winnerCorrect && goalsCorrect;
+};
 
   return (
     <main className="min-h-screen bg-black text-green-400 p-4">
@@ -129,24 +154,29 @@ export default function Home() {
               </div>
 
               {/* Odds */}
-              <div className="flex space-x-2 mb-2 justify-center">
-                {odds.map((o: any) => (
-                  <div
-                    key={o.value}
-                    className="border border-green-400 px-2 py-1 rounded text-center text-sm"
-                  >
-                    {o.value}: {o.odd}
-                  </div>
-                ))}
-              </div>
+<div className="flex space-x-2 mb-2 justify-center">
+  {odds.map((o: any) => (
+    <div
+      key={o.value}
+      className="border border-green-400 px-2 py-1 rounded text-center text-sm"
+    >
+      {o.value}: {o.odd}
+    </div>
+  ))}
+</div>
 
-              {/* Advice */}
-              <div className="text-sm text-center mt-2">
-                Advice: {predictionAdvice}{" "}
-                {matchStatus === "FT" && isAdviceCorrect(predictionAdvice, homeGoals, awayGoals) && (
-                  <span className="text-green-400 font-bold">✅</span>
-                )}
-              </div>
+{/* Advice */}
+<div className="text-center mt-2">
+  Advice:{' '}
+  {fixture.predictions[0]?.predictions?.advice
+    ? fixture.predictions[0]?.predictions?.advice
+    : 'No predictions available'}
+  {isAdviceCorrect(fixture) && (
+    <span className="ml-2 text-green-500 font-bold">✅</span>
+  )}
+</div>
+
+
             </div>
           );
         })
