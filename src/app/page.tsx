@@ -31,44 +31,46 @@ export default function Home() {
   };
 
   const isAdviceCorrect = (fixture: any) => {
-  const matchStatus = fixture.fixture.status.short;
-  if (matchStatus !== 'FT') return false; // Samo za Finished mečeve
+    const matchStatus = fixture.fixture.status.short;
+    if (matchStatus !== 'FT') return false; // Samo za Finished mečeve
 
-  const homeGoals = fixture.goals?.home ?? 0;
-  const awayGoals = fixture.goals?.away ?? 0;
-  const totalGoals = homeGoals + awayGoals;
+    const homeGoals = fixture.goals?.home ?? 0;
+    const awayGoals = fixture.goals?.away ?? 0;
+    const totalGoals = homeGoals + awayGoals;
 
-  const winnerName = fixture.predictions?.[0]?.predictions?.winner?.name;
-  const advice = fixture.predictions?.[0]?.predictions?.advice?.toLowerCase() || '';
+    const advice = fixture.predictions?.[0]?.predictions?.advice?.toLowerCase() || '';
+    if (!advice) return false;
 
-  if (!winnerName || !advice) return false;
+    // 1️⃣ Provera Winner / Double Chance
+    let winnerCorrect = true;
 
-  // Provera Winner dela
-  let winnerCorrect = false;
-  if (winnerName === 'Draw') {
-    winnerCorrect = homeGoals === awayGoals;
-  } else if (winnerName === fixture.teams.home.name) {
-    winnerCorrect = homeGoals > awayGoals;
-  } else if (winnerName === fixture.teams.away.name) {
-    winnerCorrect = awayGoals > homeGoals;
-  }
-
-  // Provera Goals dela (ako postoji)
-  let goalsCorrect = true; // podrazumevano true ako u advice-u nema goals
-
-  const goalsMatch = advice.match(/([+-]?\d+(\.\d+)?) goals/);
-  if (goalsMatch) {
-    const goalsValue = parseFloat(goalsMatch[1]);
-    if (advice.includes('under') || advice.includes('-')) {
-      goalsCorrect = totalGoals < goalsValue;
-    } else if (advice.includes('over') || advice.includes('+')) {
-      goalsCorrect = totalGoals > goalsValue;
+    if (advice.includes('double chance')) {
+      if (advice.includes('home') && homeGoals >= awayGoals) winnerCorrect = true;
+      else if (advice.includes('away') && awayGoals >= homeGoals) winnerCorrect = true;
+      else if (advice.includes('draw') && homeGoals === awayGoals) winnerCorrect = true;
+      else winnerCorrect = false;
+    } else if (advice.includes('home win')) {
+      winnerCorrect = homeGoals > awayGoals;
+    } else if (advice.includes('away win')) {
+      winnerCorrect = awayGoals > homeGoals;
+    } else if (advice.includes('draw') && !advice.includes('double chance')) {
+      winnerCorrect = homeGoals === awayGoals;
     }
-  }
 
-  // Konačno: oba moraju biti true
-  return winnerCorrect && goalsCorrect;
-};
+    // 2️⃣ Provera Goals
+    let goalsCorrect = true;
+    const goalsMatch = advice.match(/([+-]?\d+(\.\d+)?) goals/);
+    if (goalsMatch) {
+      const goalsValue = parseFloat(goalsMatch[1]);
+      if (advice.includes('under') || advice.includes('-')) {
+        goalsCorrect = totalGoals < goalsValue;
+      } else if (advice.includes('over') || advice.includes('+')) {
+        goalsCorrect = totalGoals > goalsValue;
+      }
+    }
+
+    return winnerCorrect && goalsCorrect;
+  };
 
   return (
     <main className="min-h-screen bg-black text-green-400 p-4">
@@ -154,29 +156,27 @@ export default function Home() {
               </div>
 
               {/* Odds */}
-<div className="flex space-x-2 mb-2 justify-center">
-  {odds.map((o: any) => (
-    <div
-      key={o.value}
-      className="border border-green-400 px-2 py-1 rounded text-center text-sm"
-    >
-      {o.value}: {o.odd}
-    </div>
-  ))}
-</div>
+              <div className="flex space-x-2 mb-2 justify-center">
+                {odds.map((o: any) => (
+                  <div
+                    key={o.value}
+                    className="border border-green-400 px-2 py-1 rounded text-center text-sm"
+                  >
+                    {o.value}: {o.odd}
+                  </div>
+                ))}
+              </div>
 
-{/* Advice */}
-<div className="text-center mt-2">
-  Advice:{' '}
-  {fixture.predictions[0]?.predictions?.advice
-    ? fixture.predictions[0]?.predictions?.advice
-    : 'No predictions available'}
-  {isAdviceCorrect(fixture) && (
-    <span className="ml-2 text-green-500 font-bold">✅</span>
-  )}
-</div>
-
-
+              {/* Advice */}
+              <div className="text-center mt-2">
+                Advice:{' '}
+                {fixture.predictions[0]?.predictions?.advice
+                  ? fixture.predictions[0]?.predictions?.advice
+                  : 'No predictions available'}
+                {isAdviceCorrect(fixture) && (
+                  <span className="ml-2 text-green-500 font-bold">✅</span>
+                )}
+              </div>
             </div>
           );
         })
