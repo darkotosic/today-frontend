@@ -11,7 +11,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const url = `https://today-api-7f3i.onrender.com/fixtures?date=${selectedDate}`;
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/fixtures?date=${selectedDate}`;
     setLoading(true);
     fetch(url)
       .then((res) => res.json())
