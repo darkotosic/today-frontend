@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -76,13 +75,28 @@ export default function Home() {
       <h1 className="text-4xl font-bold mb-6 text-center">NAKSIR TIPSTERS PORTAL</h1>
 
       <div className="flex justify-center space-x-4 mb-6">
-        <button onClick={() => changeDate(-1)} className={\`border px-4 py-2 \${moment().tz("Europe/Belgrade").add(-1, "days").format("YYYY-MM-DD") === selectedDate ? "bg-green-800" : ""}\`}>
+        <button
+          onClick={() => changeDate(-1)}
+          className={`border px-4 py-2 ${
+            moment().tz("Europe/Belgrade").add(-1, "days").format("YYYY-MM-DD") === selectedDate ? "bg-green-800" : ""
+          }`}
+        >
           Yesterday
         </button>
-        <button onClick={() => changeDate(0)} className={\`border px-4 py-2 \${moment().tz("Europe/Belgrade").format("YYYY-MM-DD") === selectedDate ? "bg-green-800" : ""}\`}>
+        <button
+          onClick={() => changeDate(0)}
+          className={`border px-4 py-2 ${
+            moment().tz("Europe/Belgrade").format("YYYY-MM-DD") === selectedDate ? "bg-green-800" : ""
+          }`}
+        >
           Today
         </button>
-        <button onClick={() => changeDate(1)} className={\`border px-4 py-2 \${moment().tz("Europe/Belgrade").add(1, "days").format("YYYY-MM-DD") === selectedDate ? "bg-green-800" : ""}\`}>
+        <button
+          onClick={() => changeDate(1)}
+          className={`border px-4 py-2 ${
+            moment().tz("Europe/Belgrade").add(1, "days").format("YYYY-MM-DD") === selectedDate ? "bg-green-800" : ""
+          }`}
+        >
           Tomorrow
         </button>
       </div>
@@ -120,7 +134,10 @@ export default function Home() {
                 </div>
                 <div className="text-right text-sm">
                   <div>Status: {fixture.fixture.status.long}</div>
-                  <div>{moment(fixture.fixture.date).tz("Europe/Belgrade").format("DD/MM/YYYY")} - {formatTime(fixture.fixture.timestamp)}</div>
+                  <div>
+                    {moment(fixture.fixture.date).tz("Europe/Belgrade").format("DD/MM/YYYY")} -{" "}
+                    {formatTime(fixture.fixture.timestamp)}
+                  </div>
                 </div>
               </div>
 
