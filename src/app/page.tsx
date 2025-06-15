@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -32,7 +33,7 @@ export default function Home() {
 
   const isAdviceCorrect = (fixture: any) => {
     const matchStatus = fixture.fixture.status.short;
-    if (matchStatus !== 'FT') return false; // Samo za Finished mečeve
+    if (matchStatus !== 'FT') return false;
 
     const homeGoals = fixture.goals?.home ?? 0;
     const awayGoals = fixture.goals?.away ?? 0;
@@ -41,7 +42,6 @@ export default function Home() {
     const advice = fixture.predictions?.[0]?.predictions?.advice?.toLowerCase() || '';
     if (!advice) return false;
 
-    // 1️⃣ Provera Winner / Double Chance
     let winnerCorrect = true;
 
     if (advice.includes('double chance')) {
@@ -57,7 +57,6 @@ export default function Home() {
       winnerCorrect = homeGoals === awayGoals;
     }
 
-    // 2️⃣ Provera Goals
     let goalsCorrect = true;
     const goalsMatch = advice.match(/([+-]?\d+(\.\d+)?) goals/);
     if (goalsMatch) {
@@ -77,22 +76,13 @@ export default function Home() {
       <h1 className="text-4xl font-bold mb-6 text-center">NAKSIR TIPSTERS PORTAL</h1>
 
       <div className="flex justify-center space-x-4 mb-6">
-        <button
-          onClick={() => changeDate(-1)}
-          className={`border px-4 py-2 ${moment().tz("Europe/Belgrade").add(-1, "days").format("YYYY-MM-DD") === selectedDate ? "bg-green-800" : ""}`}
-        >
+        <button onClick={() => changeDate(-1)} className={\`border px-4 py-2 \${moment().tz("Europe/Belgrade").add(-1, "days").format("YYYY-MM-DD") === selectedDate ? "bg-green-800" : ""}\`}>
           Yesterday
         </button>
-        <button
-          onClick={() => changeDate(0)}
-          className={`border px-4 py-2 ${moment().tz("Europe/Belgrade").format("YYYY-MM-DD") === selectedDate ? "bg-green-800" : ""}`}
-        >
+        <button onClick={() => changeDate(0)} className={\`border px-4 py-2 \${moment().tz("Europe/Belgrade").format("YYYY-MM-DD") === selectedDate ? "bg-green-800" : ""}\`}>
           Today
         </button>
-        <button
-          onClick={() => changeDate(1)}
-          className={`border px-4 py-2 ${moment().tz("Europe/Belgrade").add(1, "days").format("YYYY-MM-DD") === selectedDate ? "bg-green-800" : ""}`}
-        >
+        <button onClick={() => changeDate(1)} className={\`border px-4 py-2 \${moment().tz("Europe/Belgrade").add(1, "days").format("YYYY-MM-DD") === selectedDate ? "bg-green-800" : ""}\`}>
           Tomorrow
         </button>
       </div>
@@ -103,79 +93,64 @@ export default function Home() {
         <p className="text-center">No matches found.</p>
       ) : (
         fixtures.map((fixture: any) => {
-          const odds = fixture.odds?.[0]?.bookmakers?.[0]?.bets?.find((b: any) => b.name === "Match Winner")?.values || [];
-          const predictionAdvice = fixture.predictions?.[0]?.predictions?.advice || "";
+          const odds =
+            fixture?.odds?.length > 0 &&
+            fixture.odds[0]?.bookmakers?.length > 0
+              ? fixture.odds[0].bookmakers[0]?.bets?.find((b: any) => b.name === "Match Winner")?.values || []
+              : [];
+
+          const predictionAdvice =
+            fixture?.predictions?.length > 0
+              ? fixture.predictions[0]?.predictions?.advice
+              : "";
+
           const matchStatus = fixture.fixture.status.short;
           const homeGoals = fixture.goals?.home ?? 0;
           const awayGoals = fixture.goals?.away ?? 0;
 
           return (
             <div key={fixture.fixture.id} className="border border-green-400 p-4 mb-4 rounded bg-black">
-              {/* Top bar */}
               <div className="flex justify-between items-center mb-2">
                 <div className="flex items-center space-x-2">
                   <img src={fixture.league.logo} alt="League Logo" className="w-6 h-6" />
                   <span className="font-bold">{fixture.league.name}</span>
                   {fixture.league.flag && (
-                    <img
-                      src={fixture.league.flag}
-                      alt="Country Flag"
-                      className="w-5 h-5 ml-2"
-                    />
+                    <img src={fixture.league.flag} alt="Country Flag" className="w-5 h-5 ml-2" />
                   )}
                 </div>
-
                 <div className="text-right text-sm">
                   <div>Status: {fixture.fixture.status.long}</div>
-                  <div>
-                    {moment(fixture.fixture.date).tz("Europe/Belgrade").format("DD/MM/YYYY")} -{" "}
-                    {formatTime(fixture.fixture.timestamp)}
-                  </div>
+                  <div>{moment(fixture.fixture.date).tz("Europe/Belgrade").format("DD/MM/YYYY")} - {formatTime(fixture.fixture.timestamp)}</div>
                 </div>
               </div>
 
-              {/* Teams + Result */}
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center space-x-2">
                   <img src={fixture.teams.home.logo} alt="Home Logo" className="w-8 h-8" />
                   <span className="text-lg font-bold">{fixture.teams.home.name}</span>
-                  {matchStatus === "FT" && (
-                    <span className="text-2xl font-bold ml-2">{homeGoals}</span>
-                  )}
+                  {matchStatus === "FT" && <span className="text-2xl font-bold ml-2">{homeGoals}</span>}
                 </div>
 
                 <span className="text-xl font-bold">VS</span>
 
                 <div className="flex items-center space-x-2">
-                  {matchStatus === "FT" && (
-                    <span className="text-2xl font-bold mr-2">{awayGoals}</span>
-                  )}
+                  {matchStatus === "FT" && <span className="text-2xl font-bold mr-2">{awayGoals}</span>}
                   <span className="text-lg font-bold">{fixture.teams.away.name}</span>
                   <img src={fixture.teams.away.logo} alt="Away Logo" className="w-8 h-8" />
                 </div>
               </div>
 
-              {/* Odds */}
               <div className="flex space-x-2 mb-2 justify-center">
                 {odds.map((o: any) => (
-                  <div
-                    key={o.value}
-                    className="border border-green-400 px-2 py-1 rounded text-center text-sm"
-                  >
+                  <div key={o.value} className="border border-green-400 px-2 py-1 rounded text-center text-sm">
                     {o.value}: {o.odd}
                   </div>
                 ))}
               </div>
 
-              {/* Advice */}
               <div className="text-center mt-2">
-                Advice:{' '}
-                {fixture.predictions[0]?.predictions?.advice
-                  ? fixture.predictions[0]?.predictions?.advice
-                  : 'No predictions available'}
-                {isAdviceCorrect(fixture) && (
-                  <span className="ml-2 text-green-500 font-bold">✅</span>
-                )}
+                Advice: {predictionAdvice || "No predictions available"}
+                {isAdviceCorrect(fixture) && <span className="ml-2 text-green-500 font-bold">✅</span>}
               </div>
             </div>
           );
